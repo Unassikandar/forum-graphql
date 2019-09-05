@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const postSchema = new Schema( {
-    postId: {
-        type: Number,
+    disId: {
+        type: String,
         required: true
     },
     owner: {

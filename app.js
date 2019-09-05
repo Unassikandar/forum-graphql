@@ -3,8 +3,8 @@ const bodyParser = require('body-parser');
 const graphqlHttp = require('express-graphql');
 const {buildSchema} = require('graphql');
 const mongoose = require('mongoose');
-
 const Post = require('./models/post');
+
 
 const app = express();
 
@@ -14,13 +14,14 @@ app.use('/graphql', graphqlHttp({
     // define schemas
     schema: buildSchema(`
         type Post {
-            postId: Int!
+            _id: ID!
+            disId: String!
             owner: String!
             content: String!
         }
         
         input PostInput {
-            postId: Int!
+            disId: String!
             owner: String!
             content: String!
         }
@@ -39,29 +40,29 @@ app.use('/graphql', graphqlHttp({
         }
     `),
     rootValue: {
+        // resolver
         posts: () => {
              return Post.find().then(posts => {
                  return posts.map(post => {
-                     return {...post._doc };
+                     return {...post._doc};
                  });
              }).catch(err => {
                  throw err;
              });
         },
-        createPost: (args) => {
+        createPost: args => {
             const post = new Post({
-                postId: Math.floor(Math.random()*100),
+                disId: args.postInput.disId,
                 owner: args.postInput.owner,
                 content: args.postInput.content
             });
             return post.save().then(result => {
                 console.log(result);
-                return {...result._doc};
+                return { ...result._doc };
             }).catch(err => {
                 console.log(err);
                 throw err;
-            })
-            return post;
+            });
         }
     },
     graphiql: true
@@ -70,7 +71,6 @@ app.use('/graphql', graphqlHttp({
 // connect to the mongoDB database
 mongoose
     .connect(
-        // `mongodb+srv://unassikandar:D9vONiEmuO0ijbhK@cluster0-3zksz.mongodb.net/test?retryWrites=true&w=majority`, {useNewUrlParser: true}
         `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-3zksz.mongodb.net/test?retryWrites=true&w=majority`
         ).then(() => {
     app.listen(3000);
