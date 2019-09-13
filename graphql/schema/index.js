@@ -16,6 +16,12 @@ module.exports = buildSchema(`
         containedPosts: [Post!]
     }
 
+    type Vote {
+        _id: ID!
+        owner: String!
+        postId: Post!
+    }
+
     input PostInput {
         disId: String!
         parId: String!
@@ -23,13 +29,20 @@ module.exports = buildSchema(`
         content: String!
     }
 
+    input VoteInput {
+        owner: String!
+        postId: String!
+    }
+
     type RootQuery {
         posts: [Post!]!
+        votes: [Vote!]!
     }
 
     type RootMutation {
-        createPost(postInput: PostInput): Post
+        createPost(postInput: PostInput!): Post
         createDiscussion(startTime: String!, endTime: String!): Discussion
+        createVote(voteInput: VoteInput!) : Vote
     }
 
     schema {

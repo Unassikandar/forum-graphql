@@ -1,60 +1,91 @@
 const Post = require('../../models/post');
 const Discussion = require('../../models/discussion');
+const Vote = require('../../models/vote')
+const { dateToString } = require('../../helpers/date');
 
 module.exports = {
     // resolvers
-    posts: () => {
-         return Post.find()
-            .populate('disId')
-            .then(posts => {
-                return posts.map(post => {
-                    return {...post._doc};
-                });
-            }).catch(err => {
-                throw err;
+    posts: async () => {
+         try {
+            const posts = await Post.find().populate('disId');
+            return posts.map(post => {
+                return { ...post._doc };
             });
+        }
+        catch (err) {
+            throw err;
+        }
     },
-    createPost: args => {
-        let post, createdPost;
-        let instance;
-        return Discussion.findById(args.postInput.disId)
-        .then(discussion => {
-            if(!discussion){
+    votes: async () => {
+        try {
+            const votes = await Vote.find().populate('postId');
+            return votes.map(vote => {
+                return {...vote._doc};
+            });
+        } catch (err) {
+            throw err;
+        }
+    },
+    createPost: async args => {
+        let createdPost, instance;
+        try {
+            const discussion = await Discussion.findById(args.postInput.disId);
+            if (!discussion) {
                 throw new Error('discussion does not exist.');
             }
             instance = discussion;
-            post = new Post({
+            const post = new Post({
                 disId: args.postInput.disId,
                 parId: args.postInput.parId,
                 owner: args.postInput.owner,
                 content: args.postInput.content
             });
-            return post.save()
-        }).then(result => {
+            const result = await post.save();
             console.log(result);
-            createdPost = {...result._doc};
+            createdPost = { ...result._doc };
             instance.containedPosts.push(post);
-            return instance.save();
-        }).then(result => {
-            return createdPost
-        }).catch(err => {
+            instance.save();
+            return createdPost;
+        }
+        catch (err) {
             console.log(err);
             throw err;
-        });
+        }
     },
-    createDiscussion: args => {
+    createDiscussion: async args => {
         const discussion = new Discussion({
-            startTime: new Date(args.startTime),
-            endTime: new Date(args.endTime)
+            startTime: dateToString(args.startTime),
+            endTime: dateToString(args.endTime)
         });
-        return discussion
-            .save()
-            .then(result => {
-                console.log(result);
-                return {...result._doc};
-            }).catch(err => {
-                console.log(err);
-                throw err;
+        try {
+            const result = await discussion.save();
+            console.log(result);
+            return { ...result._doc };
+        }
+        catch (err) {
+            console.log(err);
+            throw err;
+        }
+    },
+    createVote: async args => {
+        try{
+            const existing = await Vote.find({
+                owner: args.voteInput.owner,
+                postId: args.voteInput.postId
+            })
+            if (existing) {
+                throw new Error('vote already exists');
+            }
+            const vote = await new Vote({
+                owner: args.voteInput.owner,
+                postId: args.voteInput.postId
             });
+            const result = await vote.save();
+            console.log(result);
+            return {...result._doc};
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
     }
 }

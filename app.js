@@ -13,7 +13,6 @@ app.use(bodyParser.json());
 
 // graphQL dependencies
 app.use('/graphql', graphqlHttp({
-    // define schemas
     schema: graphQLSchema,
     rootValue: graphQLResolvers,
     graphiql: true
@@ -23,10 +22,10 @@ app.use('/graphql', graphqlHttp({
 mongoose
     .connect(
         `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-3zksz.mongodb.net/test?retryWrites=true&w=majority`
-        ).then(() => {
-    app.listen(3000);
-}).catch(err => {
-    console.log(err);
-});
+    ).then(() => {
+        app.listen(8080);
+    }).catch(err => {
+        console.log(err);
+    });
 
-app.listen(8080);
+// app.listen(8080);
