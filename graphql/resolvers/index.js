@@ -72,11 +72,11 @@ module.exports = {
             const existing = await Vote.find({
                 owner: args.voteInput.owner,
                 postId: args.voteInput.postId
-            })
-            if (existing) {
+            });
+            if (existing.length) {
                 throw new Error('vote already exists');
             }
-            const vote = await new Vote({
+            const vote = new Vote({
                 owner: args.voteInput.owner,
                 postId: args.voteInput.postId
             });
